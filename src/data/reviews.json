@@ -1,0 +1,3 @@
+[
+  {"id":"seed-review-1","productId":1,"customerId":"seed-customer","customerName":"Asha","rating":5,"title":"Lovely quality","body":"The finish and quality are excellent for the price.","status":"approved","verifiedPurchase":true,"helpful":12,"notHelpful":1,"createdAt":"2026-09-20T10:00:00.000Z"}
+]

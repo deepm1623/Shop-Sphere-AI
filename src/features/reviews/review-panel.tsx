@@ -1,0 +1,21 @@
+"use client";
+
+import { useState } from "react";
+import { useAuthStore } from "@/store/use-auth-store";
+import { getOrdersForCustomer } from "@/services/order-service";
+import { hasVerifiedPurchase, reviewsForProduct, submitReview, validateReviewInput, voteReview, type ReviewSort } from "@/services/review-service";
+
+export function ReviewPanel({ productId }: { productId: number }) {
+  const session = useAuthStore((state) => state.session);
+  const [sort, setSort] = useState<ReviewSort>("recent");
+  const [refresh, setRefresh] = useState(0);
+  const reviews = reviewsForProduct(productId, sort);
+  const [rating, setRating] = useState(5); const [title, setTitle] = useState(""); const [body, setBody] = useState(""); const [message, setMessage] = useState("");
+  function submit(event: React.FormEvent) {
+    event.preventDefault(); if (!session) return setMessage("Sign in to submit a review.");
+    const validation = validateReviewInput({ rating, title, body }); if (validation) return setMessage(validation);
+    submitReview({ productId, customerId: session.user.id, customerName: session.user.name, rating: rating as 1 | 2 | 3 | 4 | 5, title, body, verifiedPurchase: hasVerifiedPurchase(session.user.id, productId, getOrdersForCustomer(session.user.id)) });
+    setTitle(""); setBody(""); setMessage("Review submitted for demo moderation."); setRefresh((value) => value + 1);
+  }
+  return <section className="mt-14"><div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="font-display text-3xl">Reviews</h2><p className="text-sm text-muted">Demo feedback; submitted reviews are moderated locally.</p></div><select aria-label="Sort reviews" value={sort} onChange={(event) => setSort(event.target.value as ReviewSort)} className="rounded-full border border-ink/10 bg-white px-4 py-2 text-sm"><option value="recent">Most recent</option><option value="highest">Highest rated</option><option value="lowest">Lowest rated</option><option value="helpful">Most helpful</option></select></div><div className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]"><div className="space-y-3">{reviews.length ? reviews.map((review) => <article key={review.id} className="rounded-2xl bg-white p-5"><div className="flex justify-between gap-3"><div><p className="font-semibold">{review.title}</p><p className="text-sm text-coral">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</p></div>{review.verifiedPurchase && <span className="text-xs font-bold text-leaf">Verified purchase</span>}</div><p className="mt-3 text-sm leading-6 text-muted">{review.body}</p><p className="mt-3 text-xs text-muted">By {review.customerName} · Helpful {review.helpful}</p><div className="mt-3 flex gap-2"><button onClick={() => { voteReview(review.id, true); setRefresh((value) => value + 1); }} className="text-xs font-semibold text-leaf">Helpful</button><button onClick={() => { voteReview(review.id, false); setRefresh((value) => value + 1); }} className="text-xs font-semibold text-muted">Not helpful</button></div></article>) : <div className="rounded-2xl bg-white p-8 text-sm text-muted">No approved reviews yet.</div>}</div><form onSubmit={submit} className="h-fit rounded-2xl bg-white p-5"><h3 className="font-display text-xl">Write a review</h3><label className="mt-4 block text-sm font-semibold">Rating<select value={rating} onChange={(event) => setRating(Number(event.target.value))} className="mt-2 w-full rounded-xl border border-ink/10 p-3"><option value="5">5 stars</option><option value="4">4 stars</option><option value="3">3 stars</option><option value="2">2 stars</option><option value="1">1 star</option></select></label><input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Review title" className="mt-3 w-full rounded-xl border border-ink/10 p-3 text-sm" /><textarea value={body} onChange={(event) => setBody(event.target.value)} placeholder="Share at least 10 characters" className="mt-3 min-h-28 w-full rounded-xl border border-ink/10 p-3 text-sm" /><button className="mt-3 w-full rounded-full bg-ink px-4 py-3 text-sm font-semibold text-white">Submit demo review</button>{message && <p role="status" className="mt-3 text-xs text-muted">{message}</p>}</form></div></section>;
+}

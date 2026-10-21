@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color: #17221d; background: #f8f8f3; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; background: #f8f8f3; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid #6b9b70; outline-offset: 2px; }
+::selection { background: #c8dfc9; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
